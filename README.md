@@ -1,17 +1,17 @@
 # Draftsmith
 
-**Turn a folder of messy source material into a polished, self-critiqued written deliverable — using Claude Code [dynamic workflows](https://code.claude.com/docs/en/workflows).**
+**Research a brief into a polished, self-critiqued written deliverable — using Claude Code [dynamic workflows](https://code.claude.com/docs/en/workflows).**
 
-Anthropic pitched dynamic workflows for *code* — bug sweeps, migrations, audits. This is the same machinery pointed at **knowledge work**: research, synthesis, and drafting. Drop a pile of interview transcripts, PDFs, survey dumps and rough notes into a folder, and get back a structured deliverable that has been drafted from several angles and torn apart by adversarial critics before you ever see it.
+Anthropic pitched dynamic workflows for *code* — bug sweeps, migrations, audits. This is the same machinery pointed at **knowledge work**: research, synthesis, and drafting. Give it a brief and tell it where to pull from — the web, a folder of your own notes, a connected integration like Drive or Gmail — and get back a structured deliverable that has been drafted from several angles and torn apart by adversarial critics before you ever see it.
 
 It ships in two flavors:
 
 | | What it is | Use it when |
 |---|---|---|
-| **Autonomous** (`draftsmith`) | One fire-and-forget workflow: sources → finished deliverable | You want a strong first draft with zero babysitting |
+| **Autonomous** (`draftsmith`) | One fire-and-forget workflow: brief → researched, drafted, self-critiqued deliverable | You want a strong first draft with zero babysitting |
 | **Staged** (`gather` → `extract` → `generate`) | Three workflows with **human review seams** between them | The output ships to someone and your judgment needs to be in the loop |
 
-Both use the same engine underneath: parallel extraction, a judge panel that picks the best outline, and a critique-and-revise loop that runs until the draft passes.
+Both use the same engine underneath: parallel research, parallel extraction, a judge panel that picks the best outline, and a critique-and-revise loop that runs until the draft passes.
 
 ---
 
@@ -49,14 +49,14 @@ They show up as `/draftsmith`, `/deliverable-gather`, `/deliverable-extract`, an
 
 ## Quick start — the autonomous one-shot
 
-Put your raw sources in a folder, then in Claude Code:
+Give it a brief and say where to pull from — the web, a folder of your own notes, or a connected integration. In Claude Code:
 
 ```
-Run a workflow: draftsmith on ./examples/sources —
-a product brief for the team recommending what to build next quarter to reduce churn.
+Run a workflow: draftsmith — a product brief on whether we should add
+real-time collaboration. Research the web, and read my notes in ./notes.
 ```
 
-Claude launches it in the background. Watch with `/workflows`. ~8 minutes later you have a finished brief at your output path.
+It plans the research, gathers each channel in parallel, then drafts and self-critiques. Claude launches it in the background; watch with `/workflows`. No sources of your own? Point it at the bundled `./examples/sources` folder with `sourcesDir`.
 
 A real run on the included [example sources](examples/sources/) produced [`examples/output/autonomous-brief.md`](examples/output/autonomous-brief.md) — and the critic loop caught a genuine contradiction no single pass would: the recommended fix (signal-only notifications) **can't reach the very users it targets**, because the "forgot about it" churn cohort had turned notifications off first. That's the adversarial review doing its job.
 

@@ -1,31 +1,36 @@
 /**
  * draftsmith — a Claude Code dynamic workflow
  * ────────────────────────────────────────────────────────
- * Turns a folder of raw source material (transcripts, PDFs, notes, web clips,
- * spreadsheets, markdown) into a polished, self-critiqued written deliverable
- * (report, proposal, brief, or memo).
+ * Researches a brief across the channels you choose (the web, a local folder,
+ * named MCP integrations), then turns the material into a polished,
+ * self-critiqued written deliverable (report, proposal, brief, or memo).
  *
  * It uses the four signature moves of dynamic workflows on KNOWLEDGE WORK
  * instead of code:
- *   • fan-out      — extract every source in parallel
+ *   • fan-out      — research every channel, then extract every source, in parallel
  *   • pipeline     — each source / section flows independently, no barriers
  *   • judge panel  — competing outlines, one judge picks + merges the best
  *   • convergence  — adversarial critics review the draft and it revises
  *                    itself until they pass (or max rounds)
+ *
+ * This is the autonomous one-shot. For human review between stages, use the
+ * staged trio instead: deliverable-gather → deliverable-extract → deliverable-generate.
  *
  * ── Install ──────────────────────────────────────────────
  *   Drop this file in your project at:  .claude/workflows/draftsmith.js
  *   Then run it from Claude Code with the Workflow tool, e.g.:
  *
  *     Workflow({ name: 'draftsmith', args: {
- *       sourcesDir:  './sources',
- *       deliverable: 'proposal',                       // report | proposal | brief | memo
  *       brief:       'Make the case for funding project X to the city council.',
+ *       deliverable: 'proposal',                       // report | proposal | brief | memo
  *       audience:    'municipal decision-makers, non-technical',
+ *       sources:     'web; my Drive "Project X" folder',  // channels to gather from (optional)
+ *       sourcesDir:  './notes',                         // optional local folder to also read
  *       outputPath:  './out/proposal.docx',
  *       format:      'docx'                              // md (default) | docx | pptx
  *     }})
  *
+ * Because a workflow can't ask mid-run, decide the `sources` channels in chat first.
  * Every field has a sensible default, so `args` is optional.
  * Output is always written as Markdown; format:'docx' also renders via pandoc, and
  * format:'pptx' re-authors the prose into slides and renders via python-pptx
@@ -34,9 +39,9 @@
 
 export const meta = {
   name: 'draftsmith',
-  description: 'Turn a folder of raw sources into a polished, self-critiqued written deliverable',
+  description: 'Research a brief across channels and turn it into a polished, self-critiqued deliverable',
   phases: [
-    { title: 'Survey',     detail: 'inventory the source folder, drop irrelevant files' },
+    { title: 'Gather',     detail: 'plan research, gather from each channel in parallel (web / folder / integrations)' },
     { title: 'Extract',    detail: 'pull structured findings from each source in parallel' },
     { title: 'Synthesize', detail: 'competing outlines, a judge picks and merges the best' },
     { title: 'Draft',      detail: 'write each section from its evidence, in parallel' },
@@ -49,15 +54,18 @@ export const meta = {
 // args may arrive as an object or as a JSON-encoded string — handle both.
 const A = (typeof args === 'string') ? JSON.parse(args) : (args || {})
 const cfg = {
-  sourcesDir:  A.sourcesDir  || './sources',
+  brief:       A.brief       || 'Synthesize the material into a clear, evidence-backed deliverable.',
   deliverable: A.deliverable || 'report',
-  brief:       A.brief       || 'Synthesize the source material into a clear, evidence-backed deliverable.',
   audience:    A.audience    || 'an informed but non-expert decision-maker',
+  sources:     A.sources     || 'web',             // free-form channel spec; 'web' => web research only
+  sourcesDir:  A.sourcesDir  || '',                // optional local folder; '' => none
   outputPath:  A.outputPath  || './deliverable.md',
   format:      (A.format || 'md').toLowerCase(),   // md | docx | pptx
   maxCritiqueRounds: A.maxCritiqueRounds || 3,
 }
-log(`Config: deliverable=${cfg.deliverable}, format=${cfg.format}, sources=${cfg.sourcesDir}, out=${cfg.outputPath}`)
+const outDir = cfg.outputPath.includes('/') ? cfg.outputPath.slice(0, cfg.outputPath.lastIndexOf('/')) : '.'
+const gatheredDir = `${outDir}/gathered`
+log(`Config: deliverable=${cfg.deliverable}, format=${cfg.format}, channels=${cfg.sources}, out=${cfg.outputPath}`)
 
 // ── schemas ──────────────────────────────────────────────
 const SURVEY_SCHEMA = {
@@ -77,6 +85,36 @@ const SURVEY_SCHEMA = {
         },
       },
     },
+  },
+}
+
+const PLAN_SCHEMA = {
+  type: 'object',
+  required: ['tasks'],
+  properties: {
+    tasks: {
+      type: 'array',
+      items: {
+        type: 'object',
+        required: ['channel', 'task', 'label'],
+        properties: {
+          channel: { type: 'string', enum: ['web', 'integration'] },
+          task:    { type: 'string', description: 'what to find, specifically' },
+          label:   { type: 'string', description: 'short kebab-case id for the output filename' },
+          tool:    { type: 'string', description: 'for integration tasks: which service/MCP (e.g. google-drive, gmail)' },
+        },
+      },
+    },
+  },
+}
+
+const GATHERED_SCHEMA = {
+  type: 'object',
+  required: ['path', 'summary', 'relevance'],
+  properties: {
+    path:      { type: 'string', description: 'file written under gathered/, or "none" if nothing found' },
+    summary:   { type: 'string' },
+    relevance: { type: 'string', enum: ['high', 'medium', 'low', 'none'] },
   },
 }
 
@@ -156,19 +194,49 @@ const CRITIQUE_SCHEMA = {
   },
 }
 
-// ── 1. Survey ────────────────────────────────────────────
-phase('Survey')
-const survey = await agent(
-  `List and skim every file in the folder "${cfg.sourcesDir}" (recurse into subfolders). ` +
-  `For each, give a one-line summary and rate its relevance to this brief:\n\n${cfg.brief}\n\n` +
-  `Use Glob/Read/Bash as needed. Return the structured inventory.`,
-  { schema: SURVEY_SCHEMA, label: 'survey' }
+// ── 1. Gather (plan research → fan out across channels → inventory) ──
+phase('Gather')
+const plan = await agent(
+  `Plan the research for this deliverable.\n\nBRIEF (${cfg.deliverable} for ${cfg.audience}):\n${cfg.brief}\n\n` +
+  `Channels to gather from: ${cfg.sources || '(none specified — default to web research)'}\n\n` +
+  `Break this into 3–6 concrete parallel tasks. Use channel "web" for anything findable by searching/fetching ` +
+  `the open web. Use channel "integration" for a named service (set "tool", e.g. google-drive, gmail, notion) ` +
+  `only if the user named it. Give each a short kebab-case label.`,
+  { schema: PLAN_SCHEMA, phase: 'Gather', label: 'plan-research' }
 )
-const sources = survey.sources.filter(s => s.relevance !== 'low')
-log(`Surveyed ${survey.sources.length} files → ${sources.length} relevant`)
+await agent(`Create the directory "${gatheredDir}" if it does not exist (Bash: mkdir -p). Confirm.`,
+  { phase: 'Gather', label: 'prep-dir' })
+
+const gathered = (await pipeline(
+  plan.tasks,
+  (t) => agent(
+    (t.channel === 'web'
+      ? `Research this on the open web with WebSearch and WebFetch. Pull real, citable facts and figures.\n\nTASK: ${t.task}\n`
+      : `Gather this from the "${t.tool || 'named'}" integration. Use ToolSearch to find its MCP tools, then retrieve. If unavailable, return relevance "none".\n\nTASK: ${t.task}\n`) +
+    `\nWrite clean Markdown notes (with links where relevant) to "${gatheredDir}/${t.label}.md" via the Write tool. ` +
+    `Then report the path, a one-line summary, and how relevant it turned out.`,
+    { schema: GATHERED_SCHEMA, phase: 'Gather', label: `gather:${t.label}` }
+  )
+)).filter(Boolean).filter(g => g.relevance !== 'none' && g.path && g.path !== 'none')
+
+let folderSources = []
+if (cfg.sourcesDir) {
+  const inv = await agent(
+    `List and skim every file in the folder "${cfg.sourcesDir}" (recurse). For each give a one-line summary and ` +
+    `rate relevance to this brief:\n\n${cfg.brief}\n\nUse Glob/Read/Bash. Return them with their real paths.`,
+    { schema: SURVEY_SCHEMA, phase: 'Gather', label: 'inventory-folder' }
+  )
+  folderSources = (inv.sources || []).filter(s => s.relevance !== 'low')
+}
+
+const sources = [
+  ...gathered.map(g => ({ path: g.path, kind: 'research', summary: g.summary, relevance: g.relevance })),
+  ...folderSources,
+]
+log(`Gathered ${gathered.length} researched + ${folderSources.length} folder → ${sources.length} sources`)
 if (!sources.length) {
-  log('No relevant sources found — check sourcesDir and the brief.')
-  return { error: 'no relevant sources', sourcesDir: cfg.sourcesDir }
+  log('Nothing gathered — check the brief, the channels, or whether WebSearch/MCP tools are available.')
+  return { error: 'no material gathered', sources: cfg.sources, sourcesDir: cfg.sourcesDir }
 }
 
 // ── 2. Extract (pipeline: each source independent) ───────
