@@ -24,7 +24,14 @@ Both use the same engine underneath: parallel extraction, a judge panel that pic
 
 ## Install
 
-Copy the workflows into your project (or your home dir for use everywhere):
+**Fastest — clone and try it in place.** The workflows live in `.claude/workflows/`, so they're active the moment you open Claude Code inside the clone:
+
+```bash
+git clone https://github.com/michael-ford/draftsmith
+cd draftsmith && claude          # /draftsmith is live; run it on examples/sources
+```
+
+**To use it in your own projects**, copy the four files where you want them:
 
 ```bash
 # project-local (shared with your repo)
@@ -35,6 +42,8 @@ cp .claude/workflows/*.js ~/.claude/workflows/
 ```
 
 They show up as `/draftsmith`, `/deliverable-gather`, `/deliverable-extract`, and `/deliverable-generate` in `/` autocomplete.
+
+> **Why not a plugin?** Claude Code plugins can bundle skills, agents, hooks, and MCP servers — but [not workflows](https://code.claude.com/docs/en/workflows) (there's no `workflows/` plugin component yet). Committing them to `.claude/workflows/` in a repo *is* the documented way to share workflows.
 
 ---
 
