@@ -1,0 +1,9 @@
+# Live working folder the staged workflows generate (the examples/ copies are kept intentionally)
+/deliverable-workspace/
+/sources/
+/out/
+*.docx
+
+# OS / editor cruft
+.DS_Store
+*.swp

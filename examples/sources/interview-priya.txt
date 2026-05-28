@@ -1,0 +1,16 @@
+User interview — Priya (freelance illustrator, ~3 yrs on the app)
+[recorded call, auto-transcribed, lightly cleaned]
+
+00:02  Interviewer: thanks for hopping on. So you've been using Cadence for budgeting for a while?
+00:08  Priya: yeah, um, since like 2023? I think a friend told me about it. I do illustration, mostly contract, so my income is all over the place. Some months are great, some months are basically zero.
+00:31  Interviewer: how do you use it day to day?
+00:36  Priya: honestly I don't, day to day. I open it like... once a week? Maybe less. The thing I actually care about is, can I afford to take a slow month. That's the whole question of my life lol.
+01:05  Priya: the budgeting categories are fine but they're kind of built for people with a salary? Like it assumes money comes in on the 1st and the 15th. Mine comes in whenever a client finally pays the invoice, which could be 60 days late.
+01:40  Interviewer: so the timing is the hard part.
+01:43  Priya: the timing is everything. I don't need fancy charts. I need "if you don't get paid for 6 weeks, here's when you run out." Like a runway. People at startups get a runway number, why don't I.
+02:20  Priya: I actually built a spreadsheet for this myself which is embarrassing because I'm paying for the app.
+02:30  Interviewer: what would make you stop using the spreadsheet?
+02:35  Priya: if the app just... told me the runway number. And maybe pulled in my outstanding invoices so I'm not typing them in. I use a separate invoicing tool. If those talked to each other I'd probably never leave.
+03:15  Priya: oh and the notifications are annoying, I turned them all off. "You spent $40 on coffee" ok and? not helpful. tell me something that matters.
+03:40  Interviewer: anything you love?
+03:44  Priya: the import from my bank is solid, that's why I stay. setup was easy. I just wish it understood that freelancers aren't just employees with a worse schedule.

@@ -1,0 +1,14 @@
+User interview — Marcus (freelance developer, churned last month)
+[notes typed during call, not a full transcript]
+
+- been freelancing ~6 years, contract backend work. Higher income than most but VERY lumpy. One big client at a time.
+- cancelled Cadence in April. Asked why.
+- "It's not that it's bad. I just stopped opening it." Classic. Said he set it up, used it for ~2 months, drifted off.
+- Core issue: it never told him anything he didn't already know. "I know I spent money. I want to know if I'm ok."
+- Big one: TAXES. He sets aside money for quarterly taxes manually in a separate savings account and it stresses him out. Said if the app automatically carved out a tax % from every payment and showed him "safe to spend" vs "this is the tax man's money" he'd pay double.
+  - quote: "the number I actually want is "how much of this is really mine." everything else is noise."
+- Mentioned he tried YNAB before, found it too much work / too much manual entry. Same reason he drifted from Cadence — anything that needs daily babysitting loses.
+- Did NOT care about: charts, spending categories, social/sharing stuff, the mobile widget.
+- Said onboarding was good. Bank sync good. "the bones are fine."
+- Would he come back? "if it did the tax thing and the can-I-survive-a-dry-spell thing, yeah, instantly. those are the two things that actually keep me up at night."
+- random: complained that support took 4 days to reply once. minor.
