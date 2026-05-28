@@ -70,7 +70,9 @@ The three stages are three places to apply judgment:
 
 ```
 /deliverable-gather    → spec the INPUTS
-   writes  brief.md, sources.md
+   🧑 first, in chat: Claude asks where to pull from (the web, your folders,
+       your connected MCP integrations) — a workflow can't ask mid-run
+   researches those channels → writes brief.md, sources.md, gathered/*.md
    🧑 you: confirm/cut sources, answer the spec questions, set the direction
 
 /deliverable-extract   → spec the SUBSTANCE
@@ -95,9 +97,9 @@ The file is the **contract between stages**. Because a workflow can't ask you an
 
 ### Walkthrough (the actual experience)
 
-Using the included example — turning user research into a product brief:
+Turning research into a product brief:
 
-1. **Kick off gather.** *"Turn the research in ./examples/sources into a product brief for the team. Run /deliverable-gather."* It runs ~2 min in the background; your session stays free.
+1. **Say what you need, and where to pull from.** *"Draft a product brief on X for the team."* Claude asks which channels to use — the web, a folder of your notes, your connected integrations (Drive, Gmail, Notion, Linear, whatever you have) — then kicks off gather with those. It researches each channel in parallel and runs ~2 min in the background while your session stays free. (No channels handy? Point it at the bundled `./examples/sources` instead.)
 
 2. **Seam 1.** Claude reports back: it wrote `brief.md` + `sources.md` and surfaced the open questions — *runway or tax first? what's the churn baseline? is invoicing in scope?* You decide. Maybe you tell Claude *"lead with runway, sequence tax, drop the competitor scan — too rough,"* or you open the files and edit them yourself. ([See what these look like](examples/workspace/).)
 
@@ -163,7 +165,8 @@ Arguments (all optional; sensible defaults):
 
 | Arg | Used by | Default | Meaning |
 |---|---|---|---|
-| `sourcesDir` | gather, autonomous | `./sources` | folder of raw source files |
+| `sources` | gather | `web` | free-form channels to gather from, e.g. `web; my Drive "ClientX" folder; Gmail from jane@co.com`. Claude usually fills this from your chat. |
+| `sourcesDir` | gather, autonomous | none | optional local folder to read alongside (or instead of) researched channels |
 | `deliverable` | all | `report` | `report` \| `proposal` \| `brief` \| `memo` |
 | `brief` | gather, autonomous | generic | the objective / what the deliverable must do |
 | `audience` | gather, autonomous | generic | who it's for |
